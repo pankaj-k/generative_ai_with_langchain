@@ -9,6 +9,7 @@ config.py
 .DS_Store
 
 # Distribution/Packaging
+config.py
 .env
 .venv
 env/
