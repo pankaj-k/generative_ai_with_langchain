@@ -18,19 +18,29 @@ class JobApplicationState(TypedDict):
 
 def analyze_job_description(state):
     print("...Analyzing job description...")
-    return {"is_suitable":len(state["job_description"]) > 100}
+    return {"is_suitable":len(state["job_description"]) > 4}
 
 def generate_application(state):
     print("...Generating application...")
     return {"application": "some_fake_application"}
 
+# Literal["generate_application", END] allows the function to return:
+# a specific string, and
+# a non-string special object.
+# And that's valid — Literal[...] can contain constants of different types.
+
+def is_suitable_condition(state) -> Literal["generate_application", END]: # Returns either "generate_application" string or END
+    if state.get("is_suitable"):
+        print("...Suitable application...")
+        return "generate_application"
+    return END
 
 builder = StateGraph(JobApplicationState)
 builder.add_node("analyze_job_description", analyze_job_description)
 builder.add_node("generate_application", generate_application)
 builder.add_edge(START, "analyze_job_description")
-builder.add_edge("analyze_job_description", "generate_application")
-builder.add_edge("generate_application", END)
+builder.add_conditional_edges("analyze_job_description",is_suitable_condition) # Connect analyze_job_description to is_suitable_condition
+builder.add_edge("generate_application", END) # connect generate_application to END
 graph = builder.compile()
 
 res = graph.invoke({"job_description":"fake_jd"}) # Automatically starts at the special START node in the LangGraph.
@@ -38,7 +48,8 @@ print(res)
 
 # You initialize the state with: {"job_description": "fake_jd"}
     
-# The state is passed to the first node: analyze_job_description(state)
+# The state is passed to the first node: analyze_job_description(state) coz Start is linked to it >  builder.add_edge(START, "analyze_job_description")
+
 # def analyze_job_description(state):
 #     return {"is_suitable": len(state["job_description"]) > 100}
 

@@ -1,3 +1,14 @@
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process  
+.\.venv\Scripts\Activate.ps1
+$env:OPENAI_API_KEY = ""
+$env:LANGCHAIN_API_KEY = ""
+$env:LANGCHAIN_TRACING_V2 = "true"
+$env:LANGCHAIN_PROJECT = "ProjectName"
+
+
+# MUST READ
+# https://langchain-ai.github.io/langgraph/concepts/low_level/#default-reducer
+
 # Chapter 3 - Building Workflows with LangGraph
 
 Please make sure, you set up your environment with pip, conda, poetry, or docker!
