@@ -1,0 +1,9 @@
+Store: FreshMart
+Date: 2025-09-20
+Items:
+  - Apples x2  $3.50
+  - Bread x1   $2.20
+Subtotal: $5.70
+GST (10%): $0.57
+Total: $6.27
+Thank you for shopping at FreshMart!

@@ -1,0 +1,7 @@
+Store: Corner Shop
+Date: 24/09/2025
+Items Bought:
+- Sandwich $5.00
+- Soda $2.50
+Subtotal: $7.50
+Total: $8.25

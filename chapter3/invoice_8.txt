@@ -1,0 +1,10 @@
+--- RECEIPT ---
+Shop: Techie Electronics
+Bought on: 22 Sept 2025
+Items:
+- Headphones - $45
+- Charger - $15
+Subtotal $60
+GST: $6
+Grand Total $66
+Visit again!

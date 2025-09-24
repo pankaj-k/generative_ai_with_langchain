@@ -21,7 +21,12 @@
 from langchain_core.messages import AnyMessage
 from langgraph.graph import StateGraph, add_messages, START, END
 from langchain.chat_models import ChatOpenAI
-from langchain.schema import HumanMessage, AIMessage, BaseMessage
+
+# SystemMessage → role: "system" in OpenAI API.
+# HumanMessage → role: "user" in OpenAI API. Provides user input. Sets the behavior of the assistant.
+# AIMessage → role: "assistant" in OpenAI API. Used to append prior LLM outputs.
+
+from langchain.schema import HumanMessage, AIMessage, BaseMessage, SystemMessage
 from typing_extensions import TypedDict, List
 from typing import Annotated
 
@@ -44,8 +49,9 @@ class ErrorLogState(TypedDict):
     category : str
     notification_mode : str
     messages: Annotated[list[AnyMessage], add_messages]
+    system_message: str
 
-
+@traceable(run_type="retriever")
 def extract_error_category(state):
     print("...Extracting error log...")
     raw_category  = state["error_log"].split(":")[0].strip()
@@ -63,6 +69,7 @@ def extract_error_category(state):
     else:
         return {"category": "unknown", "notification_mode": "log"}
 
+@traceable(run_type="retriever")
 def remove_sensitive_info(state):
     print("...Removing sensitive info using Presidio...")
     
@@ -80,13 +87,14 @@ def remove_sensitive_info(state):
     state["error_log"] = anonymized_text
     return state
 
+@traceable(run_type="retriever")
 def create_context_for_llm(state):
     print("...Creating context for LLM...")
-    
+    system_message = state["system_message"]
+
     # Create a context message for the LLM
     context_message = f"Error Category: {state['category']}\n"
     context_message += f"Notification Mode: {state['notification_mode']}\n"
-    context_message += f"Can you analyze this error and tell what is wrong and potential fix? Answer in format Analysis:... Fix:...\n"
     context_message += f"Error Log: {state['error_log']}\n"
 
     # Return state update with new message
@@ -108,10 +116,10 @@ def create_context_for_llm(state):
     # Clarity: Makes it obvious you're updating the entire state, not just returning partial updates
 
     return {
-        "messages": [HumanMessage(content=context_message)]
+        "messages": [SystemMessage(content=system_message),HumanMessage(content=context_message)]
     }
 
-#@traceable(run_type="retriever")
+@traceable(run_type="retriever")
 def llm_log_error_analysis(state):
     print("...Analysing error with LLM ...")
     
@@ -123,6 +131,7 @@ def llm_log_error_analysis(state):
         "messages": [AIMessage(content=response.content)]
     }
 
+@traceable(run_type="retriever")
 def send_notification(state):
     print("...Sending notification...")
     
@@ -157,7 +166,8 @@ initial_state: ErrorLogState = {
     "error_log": """ERROR:logstash.agent Failed to execute action {:action=>LogStash::PipelineAction::Create/pipeline_id:main, :exception=>"LogStash::ConfigurationError", :message=>"Expected one of [ \t\r\n], \"#\", \"{\" at line 2, column 11 (byte 19) after input{\r\nnpath ", :backtrace=>["C:/logstash-8.1.0/logstash-core/lib/logstash/compiler.rb:32:in `compile_imperative'", "org/logstash/execution/AbstractPipelineExt.java:189:in `initialize'", "org/logstash/execution/JavaBasePipelineExt.java:72:in `initialize'", "C:/logstash-8.1.0/logstash-core/lib/logstash/java_pipeline.rb:47:in `initialize'", "C:/logstash-8.1.0/logstash-core/lib/logstash/pipeline_action/create.rb:50:in `execute'", "C:/logstash-8.1.0/logstash-core/lib/logstash/agent.rb:376:in `block in converge_state'"]}""",
     "category": "",  # placeholder, will be updated
     "notification_mode": "",  # placeholder, will be updated
-    "messages": []
+    "messages": [],
+    "system_message": "You are a technical assistant. When given an error log, always respond with two sections: 'Analysis' and 'Fix'."
 }
 
 res = graph.invoke(initial_state)

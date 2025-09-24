@@ -1,0 +1,7 @@
+SuperShop Co.
+Purchase Date: 21-Sep-2025
+1x Milk - $1.50
+2x Eggs - $4.00
+Subtotal: $5.50
+GST included: $0.50
+Total Paid: $6.00

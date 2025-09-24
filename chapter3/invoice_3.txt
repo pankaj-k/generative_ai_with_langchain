@@ -1,0 +1,7 @@
+QuickBuy
+Date of Purchase: 2025/09/22
+Items Purchased:
+- Chocolate Bar $2.00
+- Juice Pack $3.00
+Total Amount: $5.50
+GST @10%: $0.50
